@@ -2,20 +2,31 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const ClassSchema = z.object({
+  name: z.string().min(1, "Nama kelas tidak boleh kosong."),
+  // UUID bersifat opsional, bisa string kosong atau UUID
+  teacher_id: z.string().uuid().nullable().optional(),
+});
 
 // Action untuk membuat kelas baru
 export async function addClass(formData: FormData) {
-  const supabase = await createClient();
-  const name = formData.get("name") as string;
-  const teacher_id = formData.get("teacher_id") as string;
+  const validatedFields = ClassSchema.safeParse({
+    name: formData.get("name"),
+    teacher_id: formData.get("teacher_id") || null,
+  });
 
-  if (!name) {
-    return { error: "Nama kelas tidak boleh kosong." };
+  if (!validatedFields.success) {
+    return { error: validatedFields.error.flatten().fieldErrors.name?.[0] };
   }
+
+  const { name, teacher_id } = validatedFields.data;
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from("classes")
-    .insert({ name, teacher_id: teacher_id || null }); 
+    .insert({ name, teacher_id: teacher_id || null });
 
   if (error) {
     console.error("Add Class Error:", error);
@@ -26,16 +37,24 @@ export async function addClass(formData: FormData) {
   return { success: true };
 }
 
-// Action untuk mengedit kelas (misal, ganti wali kelas)
+// Action untuk mengedit kelas
 export async function editClass(formData: FormData) {
-  const supabase = await createClient();
-  const id = formData.get("id") as string;
-  const name = formData.get("name") as string;
-  const teacher_id = formData.get("teacher_id") as string;
+  const EditSchema = ClassSchema.extend({
+    id: z.coerce.number().positive("ID Kelas tidak valid."),
+  });
 
-  if (!id || !name) {
-    return { error: "Data tidak lengkap." };
+  const validatedFields = EditSchema.safeParse({
+    id: formData.get("id"),
+    name: formData.get("name"),
+    teacher_id: formData.get("teacher_id") || null,
+  });
+
+  if (!validatedFields.success) {
+    return { error: "Data yang dikirim tidak valid." };
   }
+
+  const { id, name, teacher_id } = validatedFields.data;
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from("classes")
@@ -53,10 +72,18 @@ export async function editClass(formData: FormData) {
 
 // Action untuk menghapus kelas
 export async function deleteClass(formData: FormData) {
-  const supabase = await createClient();
-  const id = formData.get("id") as string;
+  const DeleteSchema = z.object({
+    id: z.coerce.number().positive("ID Kelas tidak valid."),
+  });
 
-  if (!id) return { error: "ID Kelas tidak ditemukan." };
+  const validatedFields = DeleteSchema.safeParse({ id: formData.get("id") });
+
+  if (!validatedFields.success) {
+    return { error: "ID Kelas tidak ditemukan." };
+  }
+
+  const { id } = validatedFields.data;
+  const supabase = await createClient();
 
   const { error } = await supabase.from("classes").delete().eq("id", id);
 

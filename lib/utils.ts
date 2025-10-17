@@ -13,3 +13,5 @@ export const formatRupiah = (number: number) => {
     minimumFractionDigits: 0,
   }).format(number);
 };
+
+export const ITEMS_PER_PAGE = 10;

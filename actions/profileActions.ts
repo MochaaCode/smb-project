@@ -3,22 +3,52 @@
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+// Skema untuk mengundang pengguna baru
+const InviteUserSchema = z.object({
+  full_name: z.string().min(3, "Nama lengkap minimal 3 karakter."),
+  email: z.string().email("Format email tidak valid."),
+  password: z.string().min(6, "Password minimal 6 karakter."),
+  role: z.enum(["admin", "guru", "siswa"], {
+    message: "Silakan pilih role yang valid.",
+  }),
+  class_id: z.coerce.number().optional(),
+});
+
+// Skema untuk mengedit profil
+const EditProfileSchema = z.object({
+  id: z.string().uuid("ID pengguna tidak valid."),
+  full_name: z.string().min(3, "Nama lengkap minimal 3 karakter."),
+  role: z.enum(["admin", "guru", "siswa"]),
+  class_id: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : null)),
+});
 
 export async function inviteUser(formData: FormData) {
+  const validatedFields = InviteUserSchema.safeParse({
+    full_name: formData.get("full_name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    role: formData.get("role"),
+    class_id: formData.get("class_id") || undefined,
+  });
+
+  if (!validatedFields.success) {
+    const firstError = Object.values(
+      validatedFields.error.flatten().fieldErrors
+    )[0]?.[0];
+    return { error: firstError || "Data tidak valid." };
+  }
+
+  const { full_name, email, password, role, class_id } = validatedFields.data;
+
   const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-
-  const fullName = formData.get("full_name") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const role = formData.get("role") as string;
-  const class_id = formData.get("class_id") as string;
-
-  if (!fullName || !email || !password || !role) {
-    return { error: "Semua field wajib diisi." };
-  }
 
   const {
     data: { user },
@@ -27,19 +57,17 @@ export async function inviteUser(formData: FormData) {
     email,
     password,
     email_confirm: true,
-    user_metadata: { full_name: fullName, role: role },
+    user_metadata: { full_name, role },
   });
 
   if (authError) {
-    return { error: `Gagal membuat pengguna baru: ${authError.message}` };
+    return { error: `Gagal membuat pengguna: ${authError.message}` };
   }
 
-  if (role === "siswa" && class_id && user) {
-    const { error: profileError } = await (
-      await createClient()
-    )
+  if (user && role === "siswa" && class_id) {
+    const { error: profileError } = await (await createClient())
       .from("profiles")
-      .update({ class_id: parseInt(class_id, 10) })
+      .update({ class_id: class_id })
       .eq("id", user.id);
 
     if (profileError) {
@@ -54,24 +82,31 @@ export async function inviteUser(formData: FormData) {
 }
 
 export async function editProfile(formData: FormData) {
-  const supabase = await createClient();
-  const profileId = formData.get("id") as string;
-  const fullName = formData.get("full_name") as string;
-  const role = formData.get("role") as string;
-  const class_id = formData.get("class_id") as string;
+  const validatedFields = EditProfileSchema.safeParse({
+    id: formData.get("id"),
+    full_name: formData.get("full_name"),
+    role: formData.get("role"),
+    class_id: formData.get("class_id") as string,
+  });
 
-  if (!profileId || !fullName || !role) {
-    return { error: "Data tidak lengkap." };
+  if (!validatedFields.success) {
+    const firstError = Object.values(
+      validatedFields.error.flatten().fieldErrors
+    )[0]?.[0];
+    return { error: firstError || "Data tidak lengkap." };
   }
+
+  const { id, full_name, role, class_id } = validatedFields.data;
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      full_name: fullName,
+      full_name: full_name,
       role: role,
-      class_id: role === "siswa" ? parseInt(class_id, 10) : null, // Hanya siswa yang punya kelas
+      class_id: role === "siswa" ? class_id : null,
     })
-    .eq("id", profileId);
+    .eq("id", id);
 
   if (error) {
     console.error("Edit Profile Error:", error);
@@ -79,23 +114,31 @@ export async function editProfile(formData: FormData) {
   }
 
   revalidatePath("/admin/profiles");
+  revalidatePath(`/admin/profiles/${id}`);
   return { success: true };
 }
 
 export async function deleteAuthUser(formData: FormData) {
-  // Fungsi ini juga harus menggunakan Kunci Master
+  const DeleteUserSchema = z.object({
+    id: z.string().uuid("ID Pengguna tidak valid."),
+  });
+
+  const validatedFields = DeleteUserSchema.safeParse({
+    id: formData.get("id"),
+  });
+
+  if (!validatedFields.success) {
+    return { error: "ID Pengguna tidak ditemukan." };
+  }
+
+  const { id } = validatedFields.data;
+
   const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const userId = formData.get("id") as string;
-
-  if (!userId) {
-    return { error: "ID Pengguna tidak ditemukan." };
-  }
-
-  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
 
   if (error) {
     console.error("Supabase Delete Error:", error);
@@ -107,8 +150,12 @@ export async function deleteAuthUser(formData: FormData) {
 }
 
 export async function getUserDetailsAction(userId: string) {
-  const supabase = await createClient();
+  const UuidSchema = z.string().uuid();
+  if (!UuidSchema.safeParse(userId).success) {
+    return { error: "Format ID pengguna tidak valid." };
+  }
 
+  const supabase = await createClient();
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")
     .select("*")
@@ -140,13 +187,11 @@ export async function getUserDetailsAction(userId: string) {
   if (orderHistoryError)
     console.error("Fetch order history error:", orderHistoryError);
 
-  const responseData = {
+  return {
     data: {
       profile: profileData,
       pointHistory: pointHistoryData || [],
       orderHistory: orderHistoryData || [],
     },
   };
-
-  return responseData;
 }
