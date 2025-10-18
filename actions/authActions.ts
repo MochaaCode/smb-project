@@ -48,7 +48,7 @@ export async function signInAdmin(formData: FormData) {
     return redirect("/admin/dashboard");
   }
   if (profile?.role === "guru") {
-    return redirect("/admin/kelas-saya"); // Tujuan utama guru
+    return redirect("/admin/myclass"); // Tujuan utama guru
   }
 
   // Jika role-nya siswa atau tidak dikenali, tendang keluar

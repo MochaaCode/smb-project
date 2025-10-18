@@ -46,7 +46,7 @@ const allMenuItems = [
   },
   {
     name: "Manajemen Materi",
-    href: "/admin/manajemen-materi",
+    href: "/admin/materials",
     icon: BookOpenText,
     roles: ["admin", "guru"],
   },
@@ -64,7 +64,7 @@ const allMenuItems = [
   },
   {
     name: "Kelas Saya",
-    href: "/admin/kelas-saya",
+    href: "/admin/myclass",
     icon: School2,
     roles: ["guru"],
   },
