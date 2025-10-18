@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { Paperclip } from "lucide-react";
 import Image from "next/image";
@@ -17,27 +18,26 @@ async function getMaterialDetail(id: string): Promise<Material> {
     return notFound();
   }
 
-  // Cek jika 'attachments' adalah array yang valid sebelum diproses
   if (data.attachments && Array.isArray(data.attachments)) {
-    const expiresIn = 3600;
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    // LANGKAH PENGAMAN: Filter array untuk membuang entri yang tidak valid (tidak punya 'path')
-    // Ini adalah kunci untuk memperbaiki error 'Cannot read properties of undefined'
+    const expiresIn = 3600; 
+
     const validAttachments = data.attachments.filter(
       (file: any): file is Attachment => file && typeof file.path === "string"
     );
 
-    // Jika tidak ada lampiran yang valid setelah difilter, hentikan proses
     if (validAttachments.length > 0) {
-      // Buat signed URL hanya untuk lampiran yang valid
       const signedUrlsPromises = validAttachments.map((file: Attachment) =>
-        supabase.storage
+        supabaseAdmin.storage
           .from("material-attachments")
           .createSignedUrl(file.path, expiresIn)
       );
       const signedUrlsResults = await Promise.all(signedUrlsPromises);
 
-      // Gabungkan kembali data yang sudah valid dengan URL yang sudah dibuat
       data.attachments = validAttachments.map(
         (file: Attachment, index: number) => {
           return {
@@ -47,7 +47,6 @@ async function getMaterialDetail(id: string): Promise<Material> {
         }
       );
     } else {
-      // Jika setelah filter tidak ada lampiran valid, kosongkan array-nya
       data.attachments = [];
     }
   }
@@ -83,7 +82,15 @@ export default async function MateriDetailPage({
       {/* Isi Konten Materi & Lampiran */}
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
         <article className="prose dark:prose-invert lg:prose-xl max-w-none">
-          <p>{material.content || "Konten untuk materi ini belum tersedia."}</p>
+          {material.content ? (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: material.content.replace(/\n/g, "<br />"),
+              }}
+            />
+          ) : (
+            <p>&quot;Konten untuk materi ini belum tersedia.&quot;</p>
+          )}
 
           {material.attachments && material.attachments.length > 0 && (
             <div className="mt-10 pt-6 border-t dark:border-gray-600">
@@ -93,18 +100,16 @@ export default async function MateriDetailPage({
               </h3>
               <div className="space-y-4">
                 {material.attachments.map((file: Attachment, index: number) => {
-                  // Pengaman tambahan di sisi render
-                  if (!file.url) {
-                    return null;
-                  }
 
                   const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.name);
+
+                  const downloadUrl = `/api/downloads/${file.path}`;
 
                   if (isImage) {
                     return (
                       <div key={index} className="relative w-full h-96">
                         <Image
-                          src={file.url}
+                          src={downloadUrl}
                           alt={file.name}
                           fill
                           style={{ objectFit: "contain" }}
@@ -113,11 +118,10 @@ export default async function MateriDetailPage({
                       </div>
                     );
                   } else {
-                    // INI BAGIAN UNTUK PDF DAN DOKUMEN LAIN (Tidak Dihilangkan)
                     return (
                       <a
                         key={index}
-                        href={file.url}
+                        href={downloadUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="not-prose flex items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors no-underline"
