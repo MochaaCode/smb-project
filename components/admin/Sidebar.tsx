@@ -11,6 +11,7 @@ import {
   ClipboardList,
   LogOut,
   School2,
+  BookOpenText,
 } from "lucide-react";
 import { signOut } from "@/actions/authActions";
 
@@ -42,6 +43,12 @@ const allMenuItems = [
     href: "/admin/profiles",
     icon: UserCog,
     roles: ["admin"],
+  },
+  {
+    name: "Manajemen Materi",
+    href: "/admin/manajemen-materi",
+    icon: BookOpenText,
+    roles: ["admin", "guru"],
   },
   {
     name: "Manajemen Produk",

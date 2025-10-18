@@ -77,6 +77,22 @@ export type ProfileDetails = {
     orderHistory: UserOrderHistoryItem[];
 };
 
+export interface Material {
+  id: number;
+  created_at: string;
+  author_id: string | null;
+  title: string;
+  content: string | null;
+  status: "hidden" | "visible";
+  scheduled_for: string;
+  attachments: Attachment[] | null;
+}
+
+export interface Attachment {
+  url: string;
+  name: string;
+}
+
 // ====================================================================
 // TIPE GABUNGAN (COMPOSITE / VIEW TYPES)
 // Tipe khusus yang digunakan di UI untuk menampilkan data hasil JOIN.
@@ -98,6 +114,12 @@ export type StudentWithClass = Profile & {
     name: string;
   } | null;
 };
+
+export interface MaterialWithAuthor extends Material {
+  author: {
+    full_name: string;
+  } | null;
+}
 
 /**
  * Tipe gabungan UNIVERSAL untuk menampilkan detail pesanan.
