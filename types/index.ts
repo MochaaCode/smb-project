@@ -119,6 +119,9 @@ export interface MaterialWithAuthor extends Material {
   author: {
     full_name: string;
   } | null;
+  class: {
+    name: string;
+  } | null;
 }
 
 /**

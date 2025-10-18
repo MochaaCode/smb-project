@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MaterialWithAuthor } from "@/types";
+import { Class, MaterialWithAuthor } from "@/types";
 import { createMaterial } from "@/actions/materialActions";
 import { PlusCircle, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import Modal from "@/components/ui/Modal";
@@ -28,19 +28,18 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export default function MaterialsClient({
   serverMaterials,
+  classes,
 }: {
   serverMaterials: MaterialWithAuthor[];
+  classes: Class[];
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     const formData = new FormData(e.currentTarget);
     const toastId = toast.loading("Menambahkan materi...");
-
     const result = await createMaterial(formData);
-
     toast.dismiss(toastId);
     if (result.error) {
       toast.error(result.error);
@@ -67,6 +66,7 @@ export default function MaterialsClient({
           <thead className="text-xs text-left uppercase bg-gray-50 dark:bg-gray-700">
             <tr>
               <th className="px-6 py-3">Judul Materi</th>
+              <th className="px-6 py-3">Kelas</th>
               <th className="px-6 py-3">Untuk Tanggal</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3 text-center">Aksi</th>
@@ -76,6 +76,9 @@ export default function MaterialsClient({
             {serverMaterials.map((material) => (
               <tr key={material.id}>
                 <td className="px-6 py-4 font-medium">{material.title}</td>
+                <td className="px-6 py-4 text-gray-500">
+                  {material.class?.name || "N/A"}
+                </td>
                 <td className="px-6 py-4">
                   {formatDate(material.scheduled_for)}
                 </td>
@@ -123,6 +126,21 @@ export default function MaterialsClient({
               rows={5}
               className="mt-1 block w-full border rounded-md p-2"
             ></textarea>
+          </div>
+          <div>
+            <label>Untuk Kelas</label>
+            <select
+              name="class_id"
+              required
+              className="mt-1 block w-full border rounded-md p-2 bg-white"
+            >
+              <option value="">-- Pilih Kelas --</option>
+              {classes.map((cls) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label>Jadwalkan Untuk Tanggal</label>

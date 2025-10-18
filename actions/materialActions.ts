@@ -11,11 +11,12 @@ const MaterialSchema = z.object({
   scheduled_for: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Format tanggal tidak valid.",
   }),
+  class_id: z.coerce.number().positive("Anda harus memilih kelas."),
   attachment: z
     .instanceof(File)
     .optional()
     .refine(
-      (file) => !file || file.size <= 20 * 1024 * 1024, 
+      (file) => !file || file.size <= 20 * 1024 * 1024,
       "Ukuran file maksimal 20MB."
     ),
 });
@@ -28,6 +29,7 @@ export async function createMaterial(formData: FormData) {
     content: formData.get("content"),
     status: formData.get("status"),
     scheduled_for: formData.get("scheduled_for"),
+    class_id: formData.get("class_id"),
     attachment: formData.get("attachment"),
   });
 
@@ -38,15 +40,12 @@ export async function createMaterial(formData: FormData) {
     return { error: firstError || "Data tidak valid." };
   }
 
-  const { title, content, status, scheduled_for, attachment } =
+  const { title, content, status, scheduled_for, class_id, attachment } =
     validatedFields.data;
 
-  // =================================================================
-  // LANGKAH 1: Insert data teks dulu untuk mendapatkan ID
-  // =================================================================
   const { data: materialData, error: insertError } = await supabase
     .from("materials")
-    .insert([{ title, content, status, scheduled_for }])
+    .insert([{ title, content, status, scheduled_for, class_id }])
     .select("id")
     .single();
 
@@ -57,9 +56,6 @@ export async function createMaterial(formData: FormData) {
 
   const materialId = materialData.id;
 
-  // =================================================================
-  // LANGKAH 2: Jika ada file, unggah ke Storage
-  // =================================================================
   if (attachment && attachment.size > 0) {
     const fileExt = attachment.name.split(".").pop();
     const filePath = `${materialId}/attachment.${fileExt}`; // e.g., '12/attachment.pdf'
@@ -75,9 +71,6 @@ export async function createMaterial(formData: FormData) {
       return { error: "Gagal mengunggah file lampiran." };
     }
 
-    // ===============================================================
-    // LANGKAH 3: Dapatkan URL publik & update kembali ke tabel
-    // ===============================================================
     const { data: publicUrlData } = supabase.storage
       .from("material-attachments")
       .getPublicUrl(filePath);
