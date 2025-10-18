@@ -1,7 +1,13 @@
 "use client";
 
 import { signOut } from "@/actions/authActions";
-import { LogOut, LayoutDashboard, ShoppingBag, History } from "lucide-react";
+import {
+  LogOut,
+  LayoutDashboard,
+  ShoppingBag,
+  History,
+  BookOpenText,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -68,6 +74,17 @@ export default function StudentClientLayout({
             >
               <ShoppingBag size={18} className="mr-3" />
               Tukar Poin
+            </Link>
+            <Link
+              href="/siswa/materi"
+              className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                pathname === "/siswa/materi"
+                  ? "bg-indigo-100 text-indigo-700 font-semibold"
+                  : "text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <BookOpenText size={18} className="mr-3" />
+              Materi
             </Link>
             <Link
               href="/siswa/riwayat"
