@@ -1,5 +1,3 @@
-// app/(siswa)/siswa/materi/[id]/page.tsx
-
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Paperclip } from "lucide-react";
@@ -18,6 +16,42 @@ async function getMaterialDetail(id: string): Promise<Material> {
   if (error || !data) {
     return notFound();
   }
+
+  // Cek jika 'attachments' adalah array yang valid sebelum diproses
+  if (data.attachments && Array.isArray(data.attachments)) {
+    const expiresIn = 3600;
+
+    // LANGKAH PENGAMAN: Filter array untuk membuang entri yang tidak valid (tidak punya 'path')
+    // Ini adalah kunci untuk memperbaiki error 'Cannot read properties of undefined'
+    const validAttachments = data.attachments.filter(
+      (file: any): file is Attachment => file && typeof file.path === "string"
+    );
+
+    // Jika tidak ada lampiran yang valid setelah difilter, hentikan proses
+    if (validAttachments.length > 0) {
+      // Buat signed URL hanya untuk lampiran yang valid
+      const signedUrlsPromises = validAttachments.map((file: Attachment) =>
+        supabase.storage
+          .from("material-attachments")
+          .createSignedUrl(file.path, expiresIn)
+      );
+      const signedUrlsResults = await Promise.all(signedUrlsPromises);
+
+      // Gabungkan kembali data yang sudah valid dengan URL yang sudah dibuat
+      data.attachments = validAttachments.map(
+        (file: Attachment, index: number) => {
+          return {
+            ...file,
+            url: signedUrlsResults[index].data?.signedUrl || "",
+          };
+        }
+      );
+    } else {
+      // Jika setelah filter tidak ada lampiran valid, kosongkan array-nya
+      data.attachments = [];
+    }
+  }
+
   return data;
 }
 
@@ -30,6 +64,7 @@ export default async function MateriDetailPage({
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Header Materi */}
       <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-8">
         <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white">
           {material.title}
@@ -45,6 +80,7 @@ export default async function MateriDetailPage({
         </p>
       </div>
 
+      {/* Isi Konten Materi & Lampiran */}
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
         <article className="prose dark:prose-invert lg:prose-xl max-w-none">
           <p>{material.content || "Konten untuk materi ini belum tersedia."}</p>
@@ -57,7 +93,13 @@ export default async function MateriDetailPage({
               </h3>
               <div className="space-y-4">
                 {material.attachments.map((file: Attachment, index: number) => {
+                  // Pengaman tambahan di sisi render
+                  if (!file.url) {
+                    return null;
+                  }
+
                   const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.name);
+
                   if (isImage) {
                     return (
                       <div key={index} className="relative w-full h-96">
@@ -71,6 +113,7 @@ export default async function MateriDetailPage({
                       </div>
                     );
                   } else {
+                    // INI BAGIAN UNTUK PDF DAN DOKUMEN LAIN (Tidak Dihilangkan)
                     return (
                       <a
                         key={index}
@@ -91,8 +134,6 @@ export default async function MateriDetailPage({
           )}
         </article>
       </div>
-
-      {/* --- Area Pengembangan Fitur Gamifikasi --- */}
     </div>
   );
 }

@@ -86,11 +86,13 @@ export interface Material {
   status: "hidden" | "visible";
   scheduled_for: string;
   attachments: Attachment[] | null;
+  class_id: number | null;
 }
 
 export interface Attachment {
-  url: string;
+  path: string;
   name: string;
+  url?: string;
 }
 
 // ====================================================================

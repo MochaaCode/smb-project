@@ -313,7 +313,7 @@ export default function ProfilesClient({
         onClose={() => setGivingPointsTo(null)}
       >
         <form action={handleAddPointsSubmit} className="space-y-4">
-          <input type="hidden" name="user_id" value={givingPointsTo?.id} />
+          <input type="hidden" name="user_id" value={givingPointsTo?.id || ""} />
           <div>
             <label>Jumlah Poin</label>
             <input
