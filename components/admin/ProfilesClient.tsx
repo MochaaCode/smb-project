@@ -219,7 +219,7 @@ export default function ProfilesClient({
         onClose={() => setEditingProfile(null)}
       >
         <form action={handleEditSubmit} className="space-y-4">
-          <input type="hidden" name="id" value={editingProfile?.id} />
+          <input type="hidden" name="id" value={editingProfile?.id || ""} />
           <div>
             <label>Nama Lengkap</label>
             <input
@@ -234,7 +234,7 @@ export default function ProfilesClient({
             <select
               name="role"
               required
-              defaultValue={editingProfile?.role}
+              defaultValue={editingProfile?.role || ""}
               className="mt-1 block w-full border rounded-md p-2 bg-white"
             >
               <option value="admin">Admin</option>

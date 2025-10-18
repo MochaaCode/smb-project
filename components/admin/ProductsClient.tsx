@@ -138,7 +138,6 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         </div>
       </div>
 
-      {/* Modal untuk Tambah Produk (dengan UI baru) */}
       <Modal
         title="Tambah Produk Baru"
         icon={<ShoppingBag size={20} />}
@@ -202,7 +201,6 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         </form>
       </Modal>
 
-      {/* Modal untuk Edit Produk (dengan UI baru) */}
       <Modal
         title="Edit Produk"
         icon={<Package size={20} />}
@@ -210,15 +208,14 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         onClose={() => setEditingProduct(null)}
       >
         <form action={handleEditSubmit} className="space-y-4">
-          <input type="hidden" name="id" value={editingProduct?.id} />
-          {/* ... form fields sama seperti 'Add' ... */}
+          <input type="hidden" name="id" value={editingProduct?.id || ""} />
           <div>
             <label className="text-sm font-medium">Nama Produk</label>
             <input
               name="name"
               type="text"
               required
-              defaultValue={editingProduct?.name}
+              defaultValue={editingProduct?.name || ""}
               className="mt-1 block w-full border rounded-md p-2"
             />
           </div>
@@ -229,7 +226,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                 name="price"
                 type="number"
                 required
-                defaultValue={editingProduct?.price}
+                defaultValue={editingProduct?.price || ""}
                 className="mt-1 block w-full border rounded-md p-2"
               />
             </div>
@@ -239,7 +236,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                 name="stock"
                 type="number"
                 required
-                defaultValue={editingProduct?.stock}
+                defaultValue={editingProduct?.stock || ""}
                 className="mt-1 block w-full border rounded-md p-2"
               />
             </div>

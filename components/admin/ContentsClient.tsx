@@ -147,7 +147,7 @@ export default function ContentClient({
         onClose={() => setEditingContent(null)}
       >
         <form action={handleEditSubmit} className="space-y-4">
-          <input type="hidden" name="id" value={editingContent?.id} />
+          <input type="hidden" name="id" value={editingContent?.id || ""} />
           <div>
             <label>Judul</label>
             <input

@@ -97,7 +97,6 @@ export default function ClassesClient({
         </table>
       </div>
 
-      {/* Modal untuk Add/Edit Kelas */}
       <Modal
         title={editingClass ? "Edit Kelas" : "Buat Kelas Baru"}
         icon={<Users size={20} />}
@@ -157,7 +156,6 @@ export default function ClassesClient({
         </form>
       </Modal>
 
-      {/* Modal untuk Hapus Kelas */}
       <Modal
         title="Hapus Kelas"
         icon={<Trash2 size={20} className="text-red-500" />}

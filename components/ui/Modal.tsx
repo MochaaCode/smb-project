@@ -18,41 +18,45 @@ export default function Modal({
   icon,
   children,
 }: ModalProps) {
-  // Kita gunakan 'return null' di awal agar lebih jelas
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    // Backdrop
+    // Backdrop: Area gelap di belakang panel
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-black bg-opacity-60 z-40 flex justify-center items-center p-4"
+      className={`fixed inset-0 z-50 transition-opacity duration-300 ease-in-out ${
+        isOpen ? "bg-white" : "pointer-events-none opacity-0"
+      }`}
     >
-      {/* Modal Panel */}
+      {/* Panel Konten: Meluncur dari kanan */}
       <div
         onClick={(e) => e.stopPropagation()}
-        // Menghapus animasi custom, diganti dengan transisi standar yang lebih aman
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-md relative"
+        className={`fixed top-0 right-0 h-full w-full max-w-lg transform bg-white shadow-xl transition-transform duration-300 ease-in-out dark:bg-gray-800 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
-        {/* Modal Header */}
-        <div className="flex justify-between items-center p-5 border-b dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            {icon && <div className="text-indigo-500">{icon}</div>}
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {title}
-            </h3>
+        {/*
+          Struktur di dalam panel kita buat flexbox vertikal
+          agar body-nya bisa scrollable secara independen dari header.
+        */}
+        <div className="flex h-full flex-col">
+          {/* Header Panel */}
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-5 dark:border-gray-700">
+            <div className="flex items-center space-x-3">
+              {icon && <div className="text-indigo-500">{icon}</div>}
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {title}
+              </h3>
+            </div>
+            <button
+              onClick={onClose}
+              className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-600"
+            >
+              <X size={20} />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full p-1.5 transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
 
-        {/* Modal Body */}
-        <div className="p-6">{children}</div>
+          {/* Body Panel (Scrollable) */}
+          <div className="flex-grow overflow-y-auto p-6">{children}</div>
+        </div>
       </div>
     </div>
   );

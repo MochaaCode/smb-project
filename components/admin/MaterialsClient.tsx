@@ -33,9 +33,14 @@ export default function MaterialsClient({
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const handleAddSubmit = async (formData: FormData) => {
+  const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
     const toastId = toast.loading("Menambahkan materi...");
+
     const result = await createMaterial(formData);
+
     toast.dismiss(toastId);
     if (result.error) {
       toast.error(result.error);
@@ -99,7 +104,7 @@ export default function MaterialsClient({
         onClose={() => setIsAddModalOpen(false)}
       >
         <form
-          action={handleAddSubmit}
+          onSubmit={handleAddSubmit}
           className="space-y-4"
           encType="multipart/form-data"
         >
