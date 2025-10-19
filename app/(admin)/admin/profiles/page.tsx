@@ -4,7 +4,6 @@ import ProfilesClient from "@/components/admin/ProfilesClient";
 import { ITEMS_PER_PAGE } from "@/lib/utils";
 
 async function getProfilesData(currentPage: number) {
-  // <-- Terima currentPage
   const supabase = await createClient();
 
   const from = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -14,7 +13,6 @@ async function getProfilesData(currentPage: number) {
     { data: profilesData, error: profilesError },
     { data: classesData, error: classesError },
   ] = await Promise.all([
-    // Modifikasi query ini
     supabase.from("profiles").select("*").order("full_name").range(from, to),
     supabase.from("classes").select("*").order("name"),
   ]);
@@ -28,20 +26,20 @@ async function getProfilesData(currentPage: number) {
   };
 }
 
+// Komponen Halaman Server
 export default async function ProfilesPage({
   searchParams,
 }: {
-  searchParams?: {
-    page?: string;
-  };
+  searchParams: { page?: string };
 }) {
-  const currentPage = Number(searchParams?.page) || 1; // <-- Baca halaman saat ini
+  const currentPage = Number(searchParams.page) || 1;
 
   const { profiles, classes } = await getProfilesData(currentPage);
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
       <ProfilesClient profiles={profiles} classes={classes} />
+      {/* Anda bisa menambahkan komponen Paginasi di sini jika diperlukan */}
     </div>
   );
 }
