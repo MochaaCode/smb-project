@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import AdvancedCarousel from "@/components/ui/AdvancedCarousel";
 
 export const metadata: Metadata = {
   title: "Aktivitas Kami - SMB Suvanna Dipa",
@@ -21,58 +23,69 @@ const annualActivities = [
   "ODM",
 ];
 
+const farmDayImages = [
+  "https://placehold.co/600x400/c2f0c2/ffffff?text=Farm+Day+1",
+  "https://placehold.co/600x400/99e699/ffffff?text=Farm+Day+2",
+  "https://placehold.co/600x400/70db70/ffffff?text=Farm+Day+3",
+  "https://placehold.co/600x400/47d147/ffffff?text=Farm+Day+4",
+  "https://placehold.co/600x400/248f24/ffffff?text=Farm+Day+5",
+];
+
 const AktivitasPage = () => {
   return (
-    <div className="bg-gray-50">
-      <div className="container mx-auto px-6 py-12">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-extrabold text-gray-900">
+    <div className="bg-gray-50 py-8 md:py-12">
+      <div className="container mx-auto space-y-16 px-4 sm:px-6 md:space-y-20">
+        <div className="text-center">
+          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl md:text-5xl">
             Aktivitas & Kegiatan
           </h1>
-          <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="mx-auto mt-4 max-w-3xl text-base text-gray-600 md:text-lg">
             Berbagai kegiatan kami rancang untuk membangun kebersamaan,
             kreativitas, dan karakter.
           </p>
         </div>
 
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+        <section>
+          <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 md:text-3xl">
             Agenda Tahunan Kami
           </h2>
-          <div className="flex flex-wrap justify-center gap-4">
+          <AdvancedCarousel
+            mode="group"
+            itemsToShowDesktop={3}
+            itemsToShowMobile={2}
+          >
             {annualActivities.map((activity, index) => (
               <div
                 key={index}
-                className="bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded-full shadow-sm"
+                className="flex h-32 items-center justify-center rounded-lg bg-white p-4 text-center shadow-md ring-1 ring-inset ring-gray-200"
               >
-                {activity}
+                <span className="text-base font-semibold text-blue-800 sm:text-lg">
+                  {activity}
+                </span>
               </div>
             ))}
-          </div>
-        </div>
+          </AdvancedCarousel>
+        </section>
 
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">
+        <section>
+          <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 md:text-3xl">
             Dokumentasi: Farm Day Outbond
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <img
-              src="https://placehold.co/600x400/c2f0c2/ffffff?text=Farm+Day+1"
-              alt="Farm Day 1"
-              className="rounded-lg shadow-lg w-full h-64 object-cover"
-            />
-            <img
-              src="https://placehold.co/600x400/c2f0c2/ffffff?text=Farm+Day+2"
-              alt="Farm Day 2"
-              className="rounded-lg shadow-lg w-full h-64 object-cover"
-            />
-            <img
-              src="https://placehold.co/600x400/c2f0c2/ffffff?text=Farm+Day+3"
-              alt="Farm Day 3"
-              className="rounded-lg shadow-lg w-full h-64 object-cover"
-            />
-          </div>
-        </div>
+          <AdvancedCarousel mode="center-focus">
+            {farmDayImages.map((src, index) => (
+              <div key={index} className="relative aspect-video w-full">
+                <Image
+                  src={src}
+                  alt={`Farm Day ${index + 1}`}
+                  fill
+                  unoptimized
+                  className="rounded-lg object-cover"
+                  sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 33vw"
+                />
+              </div>
+            ))}
+          </AdvancedCarousel>
+        </section>
       </div>
     </div>
   );
