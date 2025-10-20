@@ -78,7 +78,7 @@ export default function Sidebar({ role }: SidebarProps) {
   );
 
   return (
-    <aside className="w-72 flex-shrink-0 bg-gray-800 text-white flex flex-col">
+    <aside className="w-72 h-full flex-shrink-0 bg-gray-800 text-white flex flex-col lg:relative">
       <div className="h-16 flex items-center justify-center px-4 border-b border-gray-700">
         <School className="h-8 w-8 mr-2 text-indigo-400" />
         <h1 className="text-xl font-bold">Admin Panel</h1>

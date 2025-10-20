@@ -1,12 +1,13 @@
-import Sidebar from "@/components/admin/Sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import AdminLayoutClient from "@/components/admin/AdminLayoutClient"; // Impor komponen client kita
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Logika otentikasi aman, berjalan di server
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,10 +27,10 @@ export default async function AdminLayout({
     return redirect("/login?message=Akses ditolak.");
   }
 
+  // Melewatkan data 'role' dan 'children' ke Client Component
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      <Sidebar role={profile.role as "admin" | "guru"} />
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto">{children}</main>
-    </div>
+    <AdminLayoutClient role={profile.role as "admin" | "guru"}>
+      {children}
+    </AdminLayoutClient>
   );
 }
