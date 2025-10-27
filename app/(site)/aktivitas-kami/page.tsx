@@ -33,20 +33,20 @@ const farmDayImages = [
 
 const AktivitasPage = () => {
   return (
-    <div className="bg-gray-50 py-8 md:py-12">
+    <div className="bg-gray-50 dark:bg-gray-900 py-8 md:py-12">
       <div className="container mx-auto space-y-16 px-4 sm:px-6 md:space-y-20">
         <div className="text-center">
-          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl md:text-5xl">
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl md:text-5xl">
             Aktivitas & Kegiatan
           </h1>
-          <p className="mx-auto mt-4 max-w-3xl text-base text-gray-600 md:text-lg">
+          <p className="mx-auto mt-4 max-w-3xl text-base text-gray-600 dark:text-white md:text-lg">
             Berbagai kegiatan kami rancang untuk membangun kebersamaan,
             kreativitas, dan karakter.
           </p>
         </div>
 
         <section>
-          <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 md:text-3xl">
+          <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-white md:text-3xl">
             Agenda Tahunan Kami
           </h2>
           <AdvancedCarousel
@@ -57,9 +57,9 @@ const AktivitasPage = () => {
             {annualActivities.map((activity, index) => (
               <div
                 key={index}
-                className="flex h-32 items-center justify-center rounded-lg bg-white p-4 text-center shadow-md ring-1 ring-inset ring-gray-200"
+                className="flex h-32 items-center justify-center rounded-lg bg-white dark:bg-blue-600 p-4 text-center shadow-md ring-1 ring-inset ring-gray-200"
               >
-                <span className="text-base font-semibold text-blue-800 sm:text-lg">
+                <span className="text-base font-semibold text-blue-800 dark:text-white sm:text-lg">
                   {activity}
                 </span>
               </div>
@@ -68,7 +68,7 @@ const AktivitasPage = () => {
         </section>
 
         <section>
-          <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 md:text-3xl">
+          <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-white md:text-3xl">
             Dokumentasi: Farm Day Outbond
           </h2>
           <AdvancedCarousel mode="center-focus">

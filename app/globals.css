@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+/* Tambahkan kode ini untuk menyembunyikan scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Untuk Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

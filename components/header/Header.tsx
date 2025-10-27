@@ -1,6 +1,7 @@
+// components/header/Header.tsx
 "use client";
 
-import { useState } from "react"; // Hanya impor useState, useEffect dihapus
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -13,8 +14,6 @@ const Header = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // --- LOGIKA useEffect UNTUK SCROLL DIHAPUS TOTAL ---
-
   const navLinks = [
     { href: "/", label: "Beranda" },
     { href: "/tentang-kami", label: "Tentang Kami" },
@@ -22,9 +21,9 @@ const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-md">
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md">
       <nav className="container mx-auto flex items-center justify-between px-4 py-4 sm:px-6">
-        <div className="text-xl font-bold text-gray-800">
+        <div className="text-xl font-bold text-gray-800 dark:text-white">
           <Link href="/">SMB Suvanna Dipa</Link>
         </div>
 
@@ -36,8 +35,11 @@ const Header = () => {
               <Link
                 key={link.href}
                 href={link.href}
+                // Perbaikan: Menyesuaikan warna dark mode untuk konsistensi
                 className={`relative font-medium transition-colors after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-full after:origin-center after:scale-x-0 after:bg-blue-600 after:transition-transform hover:text-blue-600 after:hover:scale-x-100 ${
-                  isActive ? "text-blue-600 after:scale-x-100" : "text-gray-600"
+                  isActive
+                    ? "text-blue-600 after:scale-x-100"
+                    : "text-gray-600 dark:text-gray-300"
                 }`}
               >
                 {link.label}
@@ -56,7 +58,12 @@ const Header = () => {
 
         {/* Mobile Menu Button */}
         <div className="md:hidden">
-          <button onClick={toggleMenu} aria-label="Toggle menu">
+          {/* Perbaikan: Menambahkan kelas warna pada tombol */}
+          <button
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+            className="text-gray-800 dark:text-white"
+          >
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
@@ -65,10 +72,12 @@ const Header = () => {
       {/* Mobile Menu Dropdown with Animation */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out md:hidden ${
-          isMenuOpen ? "max-h-96 border-t border-gray-200" : "max-h-0"
+          isMenuOpen
+            ? "max-h-96 border-t border-gray-200 dark:border-gray-700"
+            : "max-h-0"
         }`}
       >
-        <div className="flex flex-col items-center space-y-1 py-3">
+        <div className="flex flex-col items-center space-y-1 py-3 bg-white dark:bg-gray-800">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -76,7 +85,9 @@ const Header = () => {
                 key={link.href}
                 href={link.href}
                 className={`w-full py-2 text-center text-base font-medium ${
-                  isActive ? "text-blue-600" : "text-gray-700"
+                  isActive
+                    ? "text-blue-600"
+                    : "text-gray-700 dark:text-gray-300"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >

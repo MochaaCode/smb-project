@@ -1,0 +1,37 @@
+/* app/(site)/HomePage.module.css */
+
+/* Hapus semua style .parallaxSection dan gambar latar belakang */
+
+/* --- ANIMASI KETIKA DI-SCROLL --- */
+.scrollAnimate {
+  opacity: 0;
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+/* Animasi untuk Section 1 (Hero) */
+.fadeInLeft {
+  transform: translateX(-50px);
+}
+.fadeInRight {
+  transform: translateX(50px);
+}
+
+/* Animasi untuk Section 2 (Tentang Kami) - Muncul dari Bawah */
+.fadeInUp {
+  transform: translateY(50px);
+}
+
+/* Animasi untuk Section 3 (Program Unggulan) - Zoom In */
+.zoomIn {
+  transform: scale(0.9);
+}
+
+/* Animasi untuk Section 4 (Call to Action) - Muncul perlahan */
+.fadeIn {
+  opacity: 0; /* Pastikan opacity awal 0 untuk .fadeIn */
+}
+
+.visible {
+  opacity: 1;
+  transform: none;
+}

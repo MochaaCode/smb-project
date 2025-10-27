@@ -8,13 +8,13 @@ export const metadata: Metadata = {
 
 const AboutPage = () => {
   return (
-    <div className="bg-white">
+    <div className="bg-white dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 sm:px-6 md:py-12">
         <div className="mb-12 text-center md:mb-16">
-          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl md:text-5xl">
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl md:text-5xl">
             Tentang SMB Suvanna Dipa
           </h1>
-          <p className="mx-auto mt-4 max-w-3xl text-base text-gray-600 md:text-lg">
+          <p className="mx-auto mt-4 max-w-3xl text-base text-gray-600 dark:text-white md:text-lg">
             Kami adalah komunitas yang berdedikasi untuk membentuk generasi muda
             yang tidak hanya cerdas, tetapi juga kaya akan nilai-nilai luhur
             seperti Metta (cinta kasih) dan Mindfulness (kesadaran penuh).
@@ -32,15 +32,15 @@ const AboutPage = () => {
             />
           </div>
           <div className="order-2 md:order-1">
-            <h2 className="mb-4 text-2xl font-bold text-gray-800 md:text-3xl">
+            <h2 className="mb-4 text-2xl font-bold text-gray-800 dark:text-white md:text-3xl">
               Visi & Misi Kami
             </h2>
-            <p className="mb-6 text-gray-700">
+            <p className="mb-6 text-gray-700 dark:text-white">
               Dengan target mencapai 70 siswa per minggu pada tahun 2025, kami
               berkomitmen untuk menciptakan lingkungan belajar yang positif,
               suportif, dan menyenangkan.
             </p>
-            <ul className="space-y-4">
+            <ul className="space-y-4 dark:text-white">
               <li className="flex items-start">
                 <span className="mt-1 mr-4 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 text-white">
                   ✔
