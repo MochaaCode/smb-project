@@ -36,13 +36,15 @@ const StatCard = ({
   value: string | number;
   icon: React.ReactNode;
 }) => (
-  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex items-center space-x-4">
-    <div className="bg-indigo-100 dark:bg-indigo-500/20 p-3 rounded-full">
+  <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md flex items-center space-x-4">
+    <div className="bg-indigo-100 dark:bg-indigo-500/20 p-3 rounded-full flex-shrink-0">
       {icon}
     </div>
     <div>
-      <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+        {title}
+      </p>
+      <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
         {value}
       </p>
     </div>
@@ -66,35 +68,41 @@ export default function AdminDashboardView({
   const attendanceToday = 0;
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+    <div className="space-y-6 md:space-y-8">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
         Dashboard Admin
       </h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard
           title="Total Pengguna"
           value={totalUsers}
-          icon={<Users className="text-indigo-500" />}
+          icon={<Users className="text-indigo-500 h-5 w-5 sm:h-6 sm:w-6" />}
         />
         <StatCard
           title="Total Produk"
           value={totalProducts}
-          icon={<Package className="text-indigo-500" />}
+          icon={<Package className="text-indigo-500 h-5 w-5 sm:h-6 sm:w-6" />}
         />
         <StatCard
           title="Pesanan Pending"
           value={pendingOrdersCount}
-          icon={<ClipboardList className="text-indigo-500" />}
+          icon={
+            <ClipboardList className="text-indigo-500 h-5 w-5 sm:h-6 sm:w-6" />
+          }
         />
         <StatCard
           title="Absensi Hari Ini"
           value={attendanceToday}
-          icon={<UserCheck className="text-indigo-500" />}
+          icon={<UserCheck className="text-indigo-500 h-5 w-5 sm:h-6 sm:w-6" />}
         />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Komposisi Pengguna</h2>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-8">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+            Komposisi Pengguna
+          </h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -117,23 +125,45 @@ export default function AdminDashboardView({
                   />
                 ))}
               </Pie>
-              <Tooltip />
-              <Legend />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: "12px" }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="lg:col-span-3 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">
+        <div className="lg:col-span-3 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800 dark:text-white">
             Aktivitas Pesanan (7 Hari Terakhir)
           </h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={weeklyActivity}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="count" fill="#82ca9d" name="Jumlah Pesanan" />
+            <BarChart
+              data={weeklyActivity}
+              margin={{ top: 5, right: 0, left: -20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="day" fontSize={12} />
+              <YAxis allowDecimals={false} fontSize={12} />{" "}
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: "12px" }} />
+              <Bar
+                dataKey="count"
+                fill="#82ca9d"
+                name="Jumlah Pesanan"
+                barSize={20}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>

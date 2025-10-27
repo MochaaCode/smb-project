@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Content } from "@/types";
 import {
   addContent,
@@ -8,9 +8,50 @@ import {
   deleteContent,
 } from "@/actions/contentActions";
 import { formatDate } from "@/lib/utils";
-import { Edit, Trash2, FilePlus, FileText } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  FilePlus,
+  FileText,
+  Eye,
+  EyeOff,
+  Loader2,
+} from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import toast from "react-hot-toast";
+
+const StatusBadge = ({ status }: { status: Content["status"] }) => {
+  let bgColor = "bg-gray-100";
+  let textColor = "text-gray-800";
+  let Icon = FileText;
+
+  switch (status) {
+    case "published":
+      bgColor = "bg-green-100";
+      textColor = "text-green-800";
+      Icon = Eye;
+      break;
+    case "draft":
+      bgColor = "bg-yellow-100";
+      textColor = "text-yellow-800";
+      Icon = Edit;
+      break;
+    case "hidden":
+      bgColor = "bg-gray-100";
+      textColor = "text-gray-800";
+      Icon = EyeOff;
+      break;
+  }
+
+  return (
+    <span
+      className={`px-2 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${bgColor} ${textColor}`}
+    >
+      <Icon size={12} className="mr-1" />
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  );
+};
 
 export default function ContentClient({
   serverContent,
@@ -20,121 +61,297 @@ export default function ContentClient({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<Content | null>(null);
   const [deletingContent, setDeletingContent] = useState<Content | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const handleAddSubmit = async (formData: FormData) => {
-    const result = await addContent(formData);
-    if (result.error) toast.error(result.error);
-    else {
-      toast.success("Konten baru berhasil dibuat!");
-      setIsAddModalOpen(false);
-    }
+    startTransition(async () => {
+      const toastId = toast.loading("Menambahkan konten...");
+      const result = await addContent(formData);
+      toast.dismiss(toastId);
+      if (result.error) toast.error(result.error);
+      else {
+        toast.success(result.success ?? "Konten berhasil dibuat!");
+        setIsAddModalOpen(false);
+      }
+    });
   };
 
   const handleEditSubmit = async (formData: FormData) => {
-    const result = await editContent(formData);
-    if (result.error) toast.error(result.error);
-    else {
-      toast.success("Konten berhasil diperbarui!");
-      setEditingContent(null);
-    }
+    startTransition(async () => {
+      const toastId = toast.loading("Memperbarui konten...");
+      const result = await editContent(formData);
+      toast.dismiss(toastId);
+      if (result.error) toast.error(result.error);
+      else {
+        toast.success(result.success ?? "Konten berhasil diperbarui!");
+        setEditingContent(null);
+      }
+    });
   };
 
   const handleDeleteSubmit = async (formData: FormData) => {
-    const result = await deleteContent(formData);
-    if (result.error) toast.error(result.error);
-    else {
-      toast.success("Konten berhasil dihapus.");
-      setDeletingContent(null);
-    }
+    startTransition(async () => {
+      const toastId = toast.loading("Menghapus konten...");
+      const result = await deleteContent(formData);
+      toast.dismiss(toastId);
+      if (result.error) toast.error(result.error);
+      else {
+        toast.success(result.success ?? "Konten berhasil dihapus.");
+        setDeletingContent(null);
+      }
+    });
   };
+
+  const disableButtons = isPending;
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Kelola Konten Acara</h1>
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <div className="flex-grow"></div>
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700"
+          disabled={disableButtons}
+          className={`flex items-center bg-indigo-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-xs sm:text-sm transition duration-150 ease-in-out ${
+            disableButtons ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
-          <FilePlus className="w-5 h-5 mr-2" />
-          Buat Konten Baru
+          {isPending && isAddModalOpen ? (
+            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 animate-spin" />
+          ) : (
+            <FilePlus className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+          )}
+          <span className="hidden sm:inline">Buat Konten Baru</span>
+          <span className="sm:hidden">Konten Baru</span>
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="text-xs text-left uppercase bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-6 py-3">Judul</th>
-              <th className="px-6 py-3">Tanggal Dibuat</th>
-              <th className="px-6 py-3 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {serverContent.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium">{item.title}</td>
-                <td className="px-6 py-4 text-gray-500">
-                  {formatDate(item.created_at)}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <div className="flex justify-center space-x-2">
-                    <button
-                      onClick={() => setEditingContent(item)}
-                      className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-full"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => setDeletingContent(item)}
-                      className="p-2 text-red-600 hover:bg-red-100 rounded-full"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
+      <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs text-left uppercase bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-400">
+              <tr>
+                <th className="px-4 py-3 sm:px-6">Judul</th>
+                <th className="px-4 py-3 sm:px-6">Tanggal Dibuat</th>
+                <th className="px-4 py-3 sm:px-6">Status</th>
+                <th className="px-4 py-3 sm:px-6 text-center">Aksi</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {serverContent.map((item) => (
+                <tr
+                  key={item.id}
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-600 ${
+                    disableButtons &&
+                    (editingContent?.id === item.id ||
+                      deletingContent?.id === item.id)
+                      ? "opacity-50"
+                      : ""
+                  }`}
+                >
+                  <td className="px-4 py-4 sm:px-6 font-medium text-gray-900 dark:text-white">
+                    {item.title}
+                  </td>
+                  <td className="px-4 py-4 sm:px-6 text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    {formatDate(item.created_at)}
+                  </td>
+                  <td className="px-4 py-4 sm:px-6">
+                    <StatusBadge status={item.status} />
+                  </td>
+                  <td className="px-4 py-4 sm:px-6 text-center">
+                    <div className="flex justify-center items-center space-x-1 sm:space-x-2">
+                      <button
+                        onClick={() => setEditingContent(item)}
+                        disabled={disableButtons}
+                        title="Edit Konten"
+                        aria-label={`Edit konten ${item.title}`}
+                        className={`p-2 text-indigo-600 hover:bg-indigo-100 dark:hover:bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
+                          disableButtons ? "cursor-not-allowed" : ""
+                        }`}
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDeletingContent(item)}
+                        disabled={disableButtons}
+                        title="Hapus Konten"
+                        aria-label={`Hapus konten ${item.title}`}
+                        className={`p-2 text-red-600 hover:bg-red-100 dark:hover:bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 ${
+                          disableButtons ? "cursor-not-allowed" : ""
+                        }`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {serverContent.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="text-center text-gray-500 dark:text-gray-400 py-8"
+                  >
+                    Tidak ada data konten.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      <div className="md:hidden space-y-3">
+        {serverContent.map((item) => (
+          <div
+            key={item.id}
+            className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-2 ${
+              disableButtons &&
+              (editingContent?.id === item.id ||
+                deletingContent?.id === item.id)
+                ? "opacity-50"
+                : ""
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <span className="font-semibold text-base text-gray-900 dark:text-white break-words mr-2">
+                {item.title}
+              </span>
+              <div className="flex space-x-1 flex-shrink-0">
+                <button
+                  onClick={() => setEditingContent(item)}
+                  disabled={disableButtons}
+                  title="Edit Konten"
+                  aria-label={`Edit konten ${item.title}`}
+                  className={`p-2 text-indigo-600 hover:bg-indigo-100 dark:hover:bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                    disableButtons ? "cursor-not-allowed" : ""
+                  }`}
+                >
+                  <Edit size={16} />
+                </button>
+                <button
+                  onClick={() => setDeletingContent(item)}
+                  disabled={disableButtons}
+                  title="Hapus Konten"
+                  aria-label={`Hapus konten ${item.title}`}
+                  className={`p-2 text-red-600 hover:bg-red-100 dark:hover:bg-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                    disableButtons ? "cursor-not-allowed" : ""
+                  }`}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+            <div className="text-xs sm:text-sm">
+              <span className="text-gray-500 dark:text-gray-400">Dibuat: </span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {formatDate(item.created_at)}
+              </span>
+            </div>
+            <div className="text-xs sm:text-sm">
+              <span className="text-gray-500 dark:text-gray-400 mr-2">
+                Status:{" "}
+              </span>
+              <StatusBadge status={item.status} />
+            </div>
+          </div>
+        ))}
+        {serverContent.length === 0 && (
+          <p className="text-center text-gray-500 dark:text-gray-400 py-6">
+            Tidak ada data konten.
+          </p>
+        )}
+      </div>
+
+      {/* Modal Tambah */}
       <Modal
         title="Buat Konten Baru"
         icon={<FileText size={20} />}
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => !isPending && setIsAddModalOpen(false)}
       >
-        <form action={handleAddSubmit} className="space-y-4">
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (isPending) return;
+            const formData = new FormData(e.currentTarget);
+            await handleAddSubmit(formData);
+          }}
+          className="space-y-4"
+        >
           <div>
-            <label>Judul</label>
+            <label
+              htmlFor="title-add"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Judul
+            </label>
             <input
+              id="title-add"
               name="title"
               required
-              className="mt-1 block w-full border rounded-md p-2"
+              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              placeholder="Judul pengumuman atau acara"
+              disabled={isPending}
             />
           </div>
           <div>
-            <label>Isi Konten</label>
+            <label
+              htmlFor="body-add"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Isi Konten
+            </label>
             <textarea
+              id="body-add"
               name="body"
               rows={8}
-              className="mt-1 block w-full border rounded-md p-2"
+              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              placeholder="Detail pengumuman atau deskripsi acara..."
+              disabled={isPending}
             ></textarea>
           </div>
-          <div className="flex justify-end pt-2 space-x-2">
+          <div>
+            <label
+              htmlFor="status-add"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Status
+            </label>
+            <select
+              id="status-add"
+              name="status"
+              defaultValue="published"
+              required
+              disabled={isPending}
+              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="published">Published</option>
+              <option value="hidden">Hidden</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+          <div className="flex justify-end pt-4 space-x-3">
             <button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              className="px-4 py-2 rounded-md bg-gray-200"
+              disabled={isPending}
+              className={`px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
+                isPending ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               Batal
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-md bg-indigo-600 text-white"
+              disabled={isPending}
+              className={`px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
+                isPending ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Simpan
+              {isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
+              ) : null}
+              {isPending ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>
@@ -144,41 +361,92 @@ export default function ContentClient({
         title="Edit Konten"
         icon={<FileText size={20} />}
         isOpen={!!editingContent}
-        onClose={() => setEditingContent(null)}
+        onClose={() => !isPending && setEditingContent(null)}
       >
-        <form action={handleEditSubmit} className="space-y-4">
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (isPending) return;
+            const formData = new FormData(e.currentTarget);
+            await handleEditSubmit(formData);
+          }}
+          className="space-y-4"
+        >
           <input type="hidden" name="id" value={editingContent?.id || ""} />
           <div>
-            <label>Judul</label>
+            <label
+              htmlFor="title-edit"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Judul
+            </label>
             <input
+              id="title-edit"
               name="title"
               required
               defaultValue={editingContent?.title}
-              className="mt-1 block w-full border rounded-md p-2"
+              disabled={isPending}
+              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
           <div>
-            <label>Isi Konten</label>
+            <label
+              htmlFor="body-edit"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Isi Konten
+            </label>
             <textarea
+              id="body-edit"
               name="body"
               rows={8}
               defaultValue={editingContent?.body || ""}
-              className="mt-1 block w-full border rounded-md p-2"
+              disabled={isPending}
+              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             ></textarea>
           </div>
-          <div className="flex justify-end pt-2 space-x-2">
+          <div>
+            <label
+              htmlFor="status-edit"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Status
+            </label>
+            <select
+              id="status-edit"
+              name="status"
+              required
+              disabled={isPending}
+              defaultValue={editingContent?.status || "published"}
+              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="published">Published</option>
+              <option value="hidden">Hidden</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+          <div className="flex justify-end pt-4 space-x-3">
             <button
               type="button"
               onClick={() => setEditingContent(null)}
-              className="px-4 py-2 rounded-md bg-gray-200"
+              disabled={isPending}
+              className={`px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
+                isPending ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               Batal
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-md bg-indigo-600 text-white"
+              disabled={isPending}
+              className={`px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
+                isPending ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Simpan Perubahan
+              {isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
+              ) : null}
+              {isPending ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </div>
         </form>
@@ -188,27 +456,46 @@ export default function ContentClient({
         title="Hapus Konten"
         icon={<Trash2 size={20} className="text-red-500" />}
         isOpen={!!deletingContent}
-        onClose={() => setDeletingContent(null)}
+        onClose={() => !isPending && setDeletingContent(null)}
       >
-        <form action={handleDeleteSubmit}>
-          <input type="hidden" name="id" value={deletingContent?.id} />
-          <p>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (isPending) return;
+            const formData = new FormData(e.currentTarget);
+            await handleDeleteSubmit(formData);
+          }}
+        >
+          <input type="hidden" name="id" value={deletingContent?.id || ""} />
+          <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
             Anda yakin ingin menghapus konten{" "}
-            <strong>&quot;{deletingContent?.title}&quot;</strong>?
+            <strong className="text-gray-900 dark:text-white">
+              &quot;{deletingContent?.title}&quot;
+            </strong>
+            ? Tindakan ini tidak dapat dibatalkan.
           </p>
-          <div className="flex justify-end pt-4 space-x-2">
+          <div className="flex justify-end pt-4 space-x-3">
             <button
               type="button"
               onClick={() => setDeletingContent(null)}
-              className="px-4 py-2 rounded-md bg-gray-200"
+              disabled={isPending}
+              className={`px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
+                isPending ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               Batal
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-md bg-red-600 text-white"
+              disabled={isPending}
+              className={`px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 ${
+                isPending ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Ya, Hapus
+              {isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
+              ) : null}
+              {isPending ? "Menghapus..." : "Ya, Hapus"}
             </button>
           </div>
         </form>
