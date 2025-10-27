@@ -49,7 +49,7 @@ export default async function MyClassProfileDetailPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = params;
+  const { id } = await params;
   const { details, error, filterOptions } = await getPageData(id);
 
   const returnHref = "/admin/myclass";
