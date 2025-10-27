@@ -1,5 +1,3 @@
-// app/(admin)/admin/profiles/[id]/page.tsx
-
 import { getUserDetailsAction } from "@/actions/profileActions";
 import ProfileDetailClient from "@/components/admin/ProfileDetailClient";
 import { Loader2, ShieldAlert } from "lucide-react";
@@ -46,8 +44,7 @@ async function getPageData(userId: string) {
   };
 }
 
-// Komponen Halaman Server untuk Profiles
-export default async function ProfileDetailPage({
+export default async function MyClassProfileDetailPage({
   params,
 }: {
   params: { id: string };
@@ -55,7 +52,7 @@ export default async function ProfileDetailPage({
   const { id } = params;
   const { details, error, filterOptions } = await getPageData(id);
 
-  const returnHref = "/admin/profiles";
+  const returnHref = "/admin/myclass";
 
   if (error) {
     return (

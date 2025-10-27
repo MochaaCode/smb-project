@@ -55,7 +55,7 @@ export default function MyClassClient({ students }: { students: Profile[] }) {
                 >
                   <td className="px-4 py-4 sm:px-6 font-medium text-gray-900 dark:text-white whitespace-nowrap">
                     <Link
-                      href={`/admin/profiles/${student.id}`}
+                      href={`/admin/myclass/${student.id}`}
                       className="text-indigo-600 hover:underline dark:text-indigo-400"
                     >
                       {student.full_name || (

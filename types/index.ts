@@ -74,7 +74,7 @@ export type UserOrderHistoryItem = {
 export type ProfileDetails = {
     profile: Profile;
     pointHistory: PointHistory[];
-    orderHistory: UserOrderHistoryItem[];
+    orderHistory: OrderDetails[];
 };
 
 export interface Material {
