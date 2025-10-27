@@ -35,8 +35,8 @@ export interface Content {
   id: number;
   title: string;
   body: string | null;
-  status: "draft" | "published";
-  author_id: string | null; // UUID dari profil pembuat
+  status: "draft" | "published" | "hidden";
+  author_id: string | null;
   created_at: string;
   published_at: string | null;
 }
