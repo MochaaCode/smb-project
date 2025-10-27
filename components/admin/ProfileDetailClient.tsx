@@ -172,7 +172,7 @@ export default function ProfileDetailClient({
         </div>
         <div className="w-full sm:w-auto text-center sm:text-right bg-indigo-600 dark:indigo-600 px-4 py-2 rounded-md">
           <p className="text-xs text-white dark:text-white">Total Poin</p>
-          <p className="text-2xl font-bold text-white">{profile.points}</p>
+          <p className="text-2xl font-bold text-yellow-300 dark:text-white">{profile.points}</p>
         </div>
       </div>
 
@@ -260,7 +260,7 @@ export default function ProfileDetailClient({
                       key={item.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
-                      <td className="px-6 py-4 text-white">
+                      <td className="px-6 py-4 text-gray-900 dark:text-white">
                         {formatDate(item.created_at)}
                       </td>
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
@@ -345,7 +345,7 @@ export default function ProfileDetailClient({
                       key={order.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-gray-900 dark:text-white">
                         {formatDate(order.created_at)}
                       </td>
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
