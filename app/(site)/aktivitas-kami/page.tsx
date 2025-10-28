@@ -24,11 +24,17 @@ const annualActivities = [
 ];
 
 const farmDayImages = [
-  "https://placehold.co/600x400/c2f0c2/ffffff?text=Farm+Day+1",
-  "https://placehold.co/600x400/99e699/ffffff?text=Farm+Day+2",
-  "https://placehold.co/600x400/70db70/ffffff?text=Farm+Day+3",
-  "https://placehold.co/600x400/47d147/ffffff?text=Farm+Day+4",
-  "https://placehold.co/600x400/248f24/ffffff?text=Farm+Day+5",
+  "/farmday/gambar-1.jpg",
+  "/farmday/gambar-2.jpg",
+  "/farmday/gambar-3.jpg",
+  "/farmday/gambar-4.jpg",
+  "/farmday/gambar-5.jpg",
+  "/farmday/gambar-6.jpg",
+  "/farmday/gambar-7.jpg",
+  "/farmday/gambar-8.jpg",
+  "/farmday/gambar-9.jpg",
+  "/farmday/gambar-10.jpg",
+  "/farmday/gambar-11.jpg",
 ];
 
 const AktivitasPage = () => {

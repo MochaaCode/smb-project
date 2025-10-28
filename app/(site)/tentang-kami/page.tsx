@@ -26,7 +26,7 @@ const AboutPage = () => {
           {/* Gambar akan muncul di atas pada layar kecil */}
           <div className="order-1 md:order-2">
             <img
-              src="https://placehold.co/600x400/a0c4ff/ffffff?text=Anak-Anak+SMB"
+              src="/SMB Suvanna Dipa.jpg"
               alt="Anak-anak SMB Suvanna Dipa"
               className="h-auto w-full rounded-lg object-cover shadow-lg"
             />

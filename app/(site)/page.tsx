@@ -63,7 +63,7 @@ export default function HomePage() {
           >
             {/* Sesuaikan warna teks untuk kontras */}
             <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl md:text-6xl text-gray-900 dark:text-white">
-              Selamat Datang di Portal Siswa
+              Selamat Datang di Portal SMB Suvanna Dipa
             </h1>
             <p className="mt-4 text-base md:text-lg text-gray-600 dark:text-gray-300">
               Masuk untuk melihat pengumuman, cek poin, dan tukarkan hadiah.
@@ -79,7 +79,7 @@ export default function HomePage() {
               {/* Latar belakang form tetap */}
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Masuk Siswa
+                  Gerbang Masuk
                 </h3>
               </div>
               <form className="space-y-6" action={signIn}>
