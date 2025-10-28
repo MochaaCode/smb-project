@@ -4,10 +4,8 @@ import { getUserDetailsAction } from "@/actions/profileActions";
 import ProfileDetailClient from "@/components/admin/ProfileDetailClient";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { ProfileDetails } from "@/types";
-import { createClient } from "@/lib/supabase/server";
 
 async function getPageData(userId: string) {
-  const supabase = await createClient();
   const userDetailsResult = await getUserDetailsAction(userId);
 
   if (userDetailsResult.error || !userDetailsResult.data) {
@@ -18,24 +16,16 @@ async function getPageData(userId: string) {
     };
   }
 
-  const [reasonsResult, productsResult] = await Promise.all([
-    supabase.from("point_history").select("reason").eq("user_id", userId),
-    supabase
-      .from("product_orders")
-      .select("products(name)")
-      .eq("user_id", userId),
-  ]);
+  const { pointHistory, orderHistory } = userDetailsResult.data;
 
+  // Optimasi: Ambil data unik dari hasil fetch pertama
   const uniqueReasons = [
-    ...new Set(
-      reasonsResult.data?.map((item) => item.reason).filter(Boolean) || []
-    ),
+    ...new Set(pointHistory.map((item) => item.reason).filter(Boolean)),
   ] as string[];
+
   const uniqueProducts = [
     ...new Set(
-      productsResult.data
-        ?.map((item: any) => item.products?.name)
-        .filter(Boolean) || []
+      orderHistory.map((item: any) => item.products?.name).filter(Boolean)
     ),
   ] as string[];
 
