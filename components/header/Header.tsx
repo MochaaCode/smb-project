@@ -48,13 +48,13 @@ const Header = () => {
           })}
         </div>
 
-        <div className="hidden items-center md:flex">
+        {/* <div className="hidden items-center md:flex">
           <Link href="/login">
             <button className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700">
               Admin/Guru Login
             </button>
           </Link>
-        </div>
+        </div> */}
 
         {/* Mobile Menu Button */}
         <div className="md:hidden">

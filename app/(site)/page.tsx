@@ -3,7 +3,7 @@
 
 import { Suspense, useEffect, useState, ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
-import { signInUser } from "@/actions/authActions";
+import { signIn } from "@/actions/authActions";
 import { LogIn, Users, Star, Award } from "lucide-react";
 import Link from "next/link";
 import styles from "./HomePage.module.css";
@@ -82,7 +82,7 @@ export default function HomePage() {
                   Masuk Siswa
                 </h3>
               </div>
-              <form className="space-y-6" action={signInUser}>
+              <form className="space-y-6" action={signIn}>
                 <div>
                   <label
                     htmlFor="email"

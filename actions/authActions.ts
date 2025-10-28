@@ -1,117 +1,129 @@
+// file: actions/authActions.ts
+
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-// Skema validasi untuk login
+// Skema validasi tunggal untuk semua login
 const LoginSchema = z.object({
   email: z.string().email({ message: "Format email tidak valid." }),
   password: z.string().min(1, { message: "Password tidak boleh kosong." }),
 });
 
-// Fungsi untuk login Admin & Guru
-export async function signInAdmin(formData: FormData) {
-  const validatedFields = LoginSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-
-  // Jika validasi gagal, kembali ke halaman login dengan pesan error
-  if (!validatedFields.success) {
-    const errorMessage = validatedFields.error.issues[0].message;
-    return redirect(`/login?message=${errorMessage}`);
-  }
-
-  const { email, password } = validatedFields.data;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.signInWithPassword({
-    email,
-    password,
+// =================================================================
+// ACTION: Sign In (Masuk)
+// =================================================================
+export async function signIn(formData: FormData) {
+  console.log("--- 🚀 ACTION: signIn ---");
+  const rawFormData = Object.fromEntries(formData.entries());
+  console.log("[1/6] Menerima FormData:", {
+    email: rawFormData.email,
+    password: "[DIREDAKSI]",
   });
 
-  if (error || !user) {
-    return redirect("/login?message=Email atau Password salah.");
-  }
-
-  // Cek role setelah login berhasil
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role === "admin") {
-    return redirect("/admin/dashboard");
-  }
-  if (profile?.role === "guru") {
-    return redirect("/admin/myclass"); // Tujuan utama guru
-  }
-
-  // Jika role-nya siswa atau tidak dikenali, tendang keluar
-  await supabase.auth.signOut();
-  return redirect("/login?message=Anda tidak memiliki akses ke panel ini.");
-}
-
-// Fungsi untuk login Siswa
-export async function signInUser(formData: FormData) {
-  const validatedFields = LoginSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
+  const validatedFields = LoginSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
+    console.error(
+      "[❌ GAGAL] Validasi Zod Gagal:",
+      validatedFields.error.flatten()
+    );
     const errorMessage = validatedFields.error.issues[0].message;
     return redirect(`/?message=${errorMessage}`);
   }
 
+  console.log("[2/6] Validasi Zod Berhasil.");
   const { email, password } = validatedFields.data;
   const supabase = await createClient();
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data: authData, error: authError } =
+    await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error || !user) {
-    return redirect(
-      "/?message=Login gagal, periksa kembali email dan password Anda."
+  if (authError || !authData.user) {
+    console.error(
+      "[❌ GAGAL] Supabase Auth Error:",
+      authError?.message || "User tidak ditemukan."
     );
+    return redirect("/?message=Email atau Password yang Anda masukkan salah.");
   }
+
+  console.log(
+    "[3/6] Autentikasi Supabase Berhasil, User ID:",
+    authData.user.id
+  );
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", user.id)
+    .eq("id", authData.user.id)
     .single();
 
   if (profileError || !profile) {
-    await supabase.auth.signOut();
-    return redirect("/?message=Gagal mendapatkan data profil pengguna.");
-  }
-
-  // Arahkan berdasarkan role
-  if (profile.role === "admin" || profile.role === "guru") {
-    await supabase.auth.signOut();
-    return redirect(
-      "/?message=Akun admin/guru harus login melalui panel admin."
+    console.error(
+      "[❌ GAGAL] Gagal mengambil profil:",
+      profileError?.message || "Profil tidak ditemukan di database."
     );
-  }
-  if (profile.role === "siswa") {
-    return redirect("/siswa/dashboard");
+    await supabase.auth.signOut(); // Logout paksa jika profil tidak ada
+    return redirect("/?message=Gagal login, data pengguna tidak ditemukan.");
   }
 
-  await supabase.auth.signOut();
-  return redirect("/?message=Role pengguna tidak valid.");
+  console.log("[4/6] Pengambilan Profil Berhasil, Role:", profile.role);
+
+  let destination = "/";
+  switch (profile.role) {
+    case "admin":
+      destination = "/admin/dashboard";
+      break;
+    case "guru":
+      destination = "/admin/myclass";
+      break;
+    case "siswa":
+      destination = "/siswa/dashboard";
+      break;
+    default:
+      console.warn(
+        "[⚠️ PERINGATAN] Role pengguna tidak dikenali:",
+        profile.role
+      );
+      await supabase.auth.signOut();
+      return redirect("/?message=Role pengguna tidak dikenali.");
+  }
+
+  console.log(`[5/6] Mengarahkan pengguna ke: ${destination}`);
+  console.log("[6/6] ✅ SUKSES: Proses sign-in selesai.");
+  return redirect(destination);
 }
 
+// =================================================================
+// ACTION: Sign Out (Keluar)
+// =================================================================
 export async function signOut() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  return redirect("/");
+  console.log("--- 🚀 ACTION: signOut ---");
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      // Ini jarang terjadi, tapi baik untuk ditangani
+      console.error("[❌ GAGAL] Supabase SignOut Error:", error);
+      return redirect("/?message=Gagal logout, silakan coba lagi.");
+    }
+
+    console.log("[1/1] ✅ SUKSES: Pengguna berhasil logout.");
+  } catch (e: any) {
+    console.error(
+      "[❌ GAGAL] Terjadi error tak terduga saat logout:",
+      e.message
+    );
+    // Fallback jika createClient atau proses lain gagal
+    return redirect("/?message=Terjadi kesalahan pada server.");
+  }
+
+  // Redirect di luar blok try...catch untuk memastikan selalu dijalankan
+  return redirect("/?message=Anda telah logout.");
 }
