@@ -63,7 +63,7 @@ export default function MyClassClient({ students }: { students: Profile[] }) {
                       )}
                     </Link>
                   </td>
-                  <td className="px-4 py-4 sm:px-6 font-bold text-yellow-500 dark:text-yellow-400 flex items-center">
+                  <td className="px-4 py-4 sm:px-6 font-bold text-yellow-500 dark:text-yellow-400">
                     <Star size={12} className="inline mr-1" /> {student.points}
                   </td>
                   <td className="px-4 py-4 sm:px-6 text-center">
