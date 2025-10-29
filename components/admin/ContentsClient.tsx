@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Content } from "@/types";
 import {
   addContent,
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import toast from "react-hot-toast";
+import TiptapEditor from "@/components/ui/RichTextEditor";
 
 const StatusBadge = ({ status }: { status: Content["status"] }) => {
   let bgColor = "bg-gray-100";
@@ -62,8 +63,18 @@ export default function ContentClient({
   const [editingContent, setEditingContent] = useState<Content | null>(null);
   const [deletingContent, setDeletingContent] = useState<Content | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [editorBody, setEditorBody] = useState("");
+
+  useEffect(() => {
+    if (editingContent) {
+      setEditorBody(editingContent.body || "");
+    } else {
+      setEditorBody("");
+    }
+  }, [editingContent]);
 
   const handleAddSubmit = async (formData: FormData) => {
+    formData.set("body", editorBody); // Set body dari state editor
     startTransition(async () => {
       const toastId = toast.loading("Menambahkan konten...");
       const result = await addContent(formData);
@@ -72,11 +83,17 @@ export default function ContentClient({
       else {
         toast.success(result.success ?? "Konten berhasil dibuat!");
         setIsAddModalOpen(false);
+        setEditorBody(""); // Reset state
       }
     });
   };
 
   const handleEditSubmit = async (formData: FormData) => {
+    // Jika editorBody punya isi (artinya diedit), gunakan itu.
+    // Jika tidak, berarti pengguna tidak menyentuh editor, jadi kirim konten asli.
+    const finalBody = editorBody || editingContent?.body || "";
+    formData.set("body", finalBody);
+
     startTransition(async () => {
       const toastId = toast.loading("Memperbarui konten...");
       const result = await editContent(formData);
@@ -85,6 +102,7 @@ export default function ContentClient({
       else {
         toast.success(result.success ?? "Konten berhasil diperbarui!");
         setEditingContent(null);
+        // editorBody akan di-reset oleh useEffect
       }
     });
   };
@@ -106,6 +124,7 @@ export default function ContentClient({
 
   return (
     <>
+      {/* ... SISA JSX KOMPONEN (TIDAK ADA PERUBAHAN DARI KODE YANG KAMU KIRIM) ... */}
       <div className="flex justify-between items-center mb-4 sm:mb-6">
         <div className="flex-grow"></div>
         <button
@@ -267,7 +286,12 @@ export default function ContentClient({
         title="Buat Konten Baru"
         icon={<FileText size={20} />}
         isOpen={isAddModalOpen}
-        onClose={() => !isPending && setIsAddModalOpen(false)}
+        onClose={() => {
+          if (!isPending) {
+            setIsAddModalOpen(false);
+            setEditorBody("");
+          }
+        }}
       >
         <form
           onSubmit={async (e) => {
@@ -297,18 +321,15 @@ export default function ContentClient({
           <div>
             <label
               htmlFor="body-add"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Isi Konten
             </label>
-            <textarea
-              id="body-add"
-              name="body"
-              rows={8}
-              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+            <TiptapEditor
+              content={editorBody}
+              onChange={(newContent) => setEditorBody(newContent)}
               placeholder="Detail pengumuman atau deskripsi acara..."
-              disabled={isPending}
-            ></textarea>
+            />
           </div>
           <div>
             <label
@@ -344,7 +365,7 @@ export default function ContentClient({
             <button
               type="submit"
               disabled={isPending}
-              className={`px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
+              className={`inline-flex items-center justify-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
                 isPending ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
@@ -361,97 +382,103 @@ export default function ContentClient({
         title="Edit Konten"
         icon={<FileText size={20} />}
         isOpen={!!editingContent}
-        onClose={() => !isPending && setEditingContent(null)}
+        onClose={() => {
+          if (!isPending) {
+            setEditingContent(null);
+          }
+        }}
       >
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (isPending) return;
-            const formData = new FormData(e.currentTarget);
-            await handleEditSubmit(formData);
-          }}
-          className="space-y-4"
-        >
-          <input type="hidden" name="id" value={editingContent?.id || ""} />
-          <div>
-            <label
-              htmlFor="title-edit"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Judul
-            </label>
-            <input
-              id="title-edit"
-              name="title"
-              required
-              defaultValue={editingContent?.title}
-              disabled={isPending}
-              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="body-edit"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Isi Konten
-            </label>
-            <textarea
-              id="body-edit"
-              name="body"
-              rows={8}
-              defaultValue={editingContent?.body || ""}
-              disabled={isPending}
-              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-            ></textarea>
-          </div>
-          <div>
-            <label
-              htmlFor="status-edit"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Status
-            </label>
-            <select
-              id="status-edit"
-              name="status"
-              required
-              disabled={isPending}
-              defaultValue={editingContent?.status || "published"}
-              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="published">Published</option>
-              <option value="hidden">Hidden</option>
-              <option value="draft">Draft</option>
-            </select>
-          </div>
-          <div className="flex justify-end pt-4 space-x-3">
-            <button
-              type="button"
-              onClick={() => setEditingContent(null)}
-              disabled={isPending}
-              className={`px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
-                isPending ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className={`px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
-                isPending ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {isPending ? (
-                <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
-              ) : null}
-              {isPending ? "Menyimpan..." : "Simpan Perubahan"}
-            </button>
-          </div>
-        </form>
+        {editingContent && (
+          <form
+            key={editingContent.id}
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (isPending) return;
+              const formData = new FormData(e.currentTarget);
+              await handleEditSubmit(formData);
+            }}
+            className="space-y-4"
+          >
+            <input type="hidden" name="id" value={editingContent.id} />
+            <div>
+              <label
+                htmlFor="title-edit"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Judul
+              </label>
+              <input
+                id="title-edit"
+                name="title"
+                required
+                defaultValue={editingContent.title}
+                disabled={isPending}
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="body-edit"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Isi Konten
+              </label>
+              <TiptapEditor
+                content={editorBody} // Dikelola oleh useEffect
+                onChange={(newContent) => {
+                  setEditorBody(newContent);
+                }}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="status-edit"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Status
+              </label>
+              <select
+                id="status-edit"
+                name="status"
+                required
+                disabled={isPending}
+                defaultValue={editingContent.status || "published"}
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="published">Published</option>
+                <option value="hidden">Hidden</option>
+                <option value="draft">Draft</option>
+              </select>
+            </div>
+            <div className="flex justify-end pt-4 space-x-3">
+              <button
+                type="button"
+                onClick={() => setEditingContent(null)}
+                disabled={isPending}
+                className={`px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 ${
+                  isPending ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isPending}
+                className={`inline-flex items-center justify-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${
+                  isPending ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                {isPending ? (
+                  <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
+                ) : null}
+                {isPending ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
 
+      {/* ... Modal Hapus ... */}
       <Modal
         title="Hapus Konten"
         icon={<Trash2 size={20} className="text-red-500" />}
@@ -488,7 +515,7 @@ export default function ContentClient({
             <button
               type="submit"
               disabled={isPending}
-              className={`px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 ${
+              className={`inline-flex items-center justify-center px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 ${
                 isPending ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >

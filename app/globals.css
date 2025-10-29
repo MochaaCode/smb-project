@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+.prose p:empty {
+  margin-bottom: 1rem; /* Sesuaikan nilainya jika perlu */
+}
+
 /* Tambahkan kode ini untuk menyembunyikan scrollbar */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

@@ -23,7 +23,6 @@ export default function StudentDashboardClient({
         </p>
       </div>
 
-      {/* Kartu Poin (Tidak Berubah) */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-8 rounded-xl shadow-lg">
         <div className="flex items-center space-x-4">
           <Star size={40} />
@@ -34,7 +33,7 @@ export default function StudentDashboardClient({
         </div>
       </div>
 
-      {/* Bagian Pengumuman Terbaru (DIREVISI) */}
+      {/* Bagian Pengumuman Terbaru */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 flex items-center">
           <FileText className="mr-2 text-blue-500" />
@@ -43,10 +42,11 @@ export default function StudentDashboardClient({
         <div className="space-y-2">
           {recentContent && recentContent.length > 0 ? (
             recentContent.map((item) => (
-              // Menggunakan <details> untuk accordion
               <details
                 key={item.id}
                 className="group border rounded-lg overflow-hidden"
+                // HIGHLIGHT: Tambahkan prop ini untuk mengatasi error hydration
+                suppressHydrationWarning
               >
                 <summary className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 list-none">
                   <div>
@@ -74,9 +74,10 @@ export default function StudentDashboardClient({
                   </div>
                 </summary>
                 <div className="p-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                  <p className="text-gray-700 dark:text-gray-300">
-                    {item.body}
-                  </p>
+                  <article
+                    className="prose prose-sm max-w-none text-justify dark:prose-invert prose-p:mb-4"
+                    dangerouslySetInnerHTML={{ __html: item.body || "" }}
+                  />
                 </div>
               </details>
             ))
