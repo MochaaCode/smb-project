@@ -4,13 +4,15 @@ on:
   schedule:
     # Menjalankan job setiap hari pukul 00:00 UTC
     - cron: '0 0 * * *'
+  # Tambahkan ini agar bisa dijalankan manual untuk testing
+  workflow_dispatch:
 
 jobs:
   cronjob:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase
+      - name: Ping Supabase REST Endpoint
         run: |
-          curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/profiles?select=id&limit=1" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+          curl -I -X HEAD \
+          "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
